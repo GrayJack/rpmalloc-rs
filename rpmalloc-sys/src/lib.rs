@@ -32,11 +32,14 @@
 //! ### Contribution
 //!
 //! Unless you explicitly state otherwise, any contribution intentionally submitted for inclusion in the work by you, as defined in the Apache-2.0 license, shall be dual licensed as above, without any additional terms or conditions.
-
+#![no_std]
 #[cfg(test)]
 mod tests;
 
-pub use libc::{c_int, c_uint, c_void, size_t};
+pub use core::ffi::{c_int, c_uint, c_void};
+
+#[allow(missing_docs)]
+pub type size_t = usize;
 
 /// Global memory statistics
 #[repr(C)]
@@ -162,7 +165,7 @@ typedef struct rpmalloc_config_t {
 } rpmalloc_config_t;
 */
 
-extern "C" {
+extern "C-unwind" {
     /// Initialize allocator with default configuration
     pub fn rpmalloc_initialize() -> c_int;
 
@@ -221,13 +224,13 @@ extern "C" {
     /// Allocate a memory block of at least the given size and alignment.
     /// Alignment must be a power of two and a multiple of sizeof(void*),
     /// and should ideally be less than memory page size. A caveat of rpmalloc
-    /// internals is that this must also be strictly less than the span size (default 64KiB)    
+    /// internals is that this must also be strictly less than the span size (default 64KiB)
     pub fn rpaligned_alloc(alignment: size_t, size: size_t) -> *mut c_void;
 
     /// Allocate a memory block of at least the given size and alignment, and zero initialize it.
     /// Alignment must be a power of two and a multiple of sizeof(void*),
     /// and should ideally be less than memory page size. A caveat of rpmalloc
-    /// internals is that this must also be strictly less than the span size (default 64KiB)    
+    /// internals is that this must also be strictly less than the span size (default 64KiB)
     pub fn rpaligned_calloc(alignment: size_t, num: size_t, size: size_t) -> *mut c_void;
 
     /// Allocate a memory block of at least the given size and alignment.

@@ -147,6 +147,31 @@ use rpmalloc_sys as ffi;
 /// rpmalloc global allocator wrapper
 pub struct RpMalloc;
 
+impl RpMalloc {
+    /// Initialize the allocator
+    ///
+    /// Returns `true` if the allocator was initialized, `false` if it fail to initialize.
+    ///
+    /// This is called automatically by the `RpMalloc` global allocator, but can be called manually
+    /// if you want to configure the allocator before using it.
+    #[allow(clippy::result_unit_err)]
+    pub fn init() -> bool {
+        let was_init = unsafe { ffi::rpmalloc_initialize() };
+        matches!(was_init, 0)
+    }
+
+    /// Deinitialize the allocator
+    ///
+    /// This is called automatically by the `RpMalloc` global allocator, but can be called manually
+    /// if you want to deinitialize the allocator before the program exits.
+    ///
+    /// # Safety
+    /// Behavior is undefined if there are calls to `rpmalloc` APIs after this function is called.
+    pub unsafe fn deinit() {
+        ffi::rpmalloc_finalize();
+    }
+}
+
 unsafe impl GlobalAlloc for RpMalloc {
     unsafe fn alloc(&self, layout: Layout) -> *mut u8 {
         ffi::rpaligned_alloc(layout.align(), layout.size()).cast::<u8>()

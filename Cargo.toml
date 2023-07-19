@@ -38,3 +38,4 @@ unlimited_thread_cache = ["rpmalloc-sys/unlimited_thread_cache"]      # Compile 
 global_cache = ["rpmalloc-sys/global_cache"]                          # Compile with ENABLE_GLOBAL_CACHE=1
 thread_cache = ["rpmalloc-sys/thread_cache"]                          # Compile with ENABLE_THREAD_CACHE=1
 adaptive_thread_cache = ["rpmalloc-sys/adaptive_thread_cache"]        # Compile with ENABLE_ADAPTIVE_THREAD_CACHE=1
+nightly = []

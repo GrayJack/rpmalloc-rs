@@ -128,12 +128,20 @@
 // END - Embark standard lints v0.3
 // crate-specific exceptions:
 #![allow(unsafe_code)] // FFI bindings need it
+#![cfg_attr(feature = "nightly", feature(allocator_api))]
 #![no_std]
 
 use core::{
     alloc::{GlobalAlloc, Layout},
     mem::MaybeUninit,
 };
+
+#[cfg(feature = "nightly")]
+use core::{
+    alloc::{AllocError, Allocator},
+    ptr::NonNull,
+};
+
 use rpmalloc_sys as ffi;
 
 /// rpmalloc global allocator wrapper
@@ -148,6 +156,59 @@ unsafe impl GlobalAlloc for RpMalloc {
     }
     unsafe fn dealloc(&self, ptr: *mut u8, _layout: Layout) {
         ffi::rpfree(ptr.cast::<ffi::c_void>());
+    }
+}
+
+#[cfg(feature = "nightly")]
+unsafe impl Allocator for RpMalloc {
+    fn allocate(&self, layout: Layout) -> Result<NonNull<[u8]>, AllocError> {
+        let ptr = unsafe { ffi::rpaligned_alloc(layout.align(), layout.size()).cast::<u8>() };
+        if ptr.is_null() {
+            Err(AllocError)
+        } else {
+            Ok(unsafe {
+                NonNull::new_unchecked(core::slice::from_raw_parts_mut(ptr, layout.size()))
+            })
+        }
+    }
+
+    fn allocate_zeroed(&self, layout: Layout) -> Result<NonNull<[u8]>, AllocError> {
+        let ptr = unsafe { ffi::rpaligned_calloc(layout.align(), 1, layout.size()).cast::<u8>() };
+        if ptr.is_null() {
+            Err(AllocError)
+        } else {
+            Ok(unsafe {
+                NonNull::new_unchecked(core::slice::from_raw_parts_mut(ptr, layout.size()))
+            })
+        }
+    }
+
+    unsafe fn grow(
+        &self,
+        ptr: NonNull<u8>,
+        old_layout: Layout,
+        new_layout: Layout,
+    ) -> Result<NonNull<[u8]>, AllocError> {
+        let new_ptr = ffi::rpaligned_realloc(
+            ptr.as_ptr().cast::<ffi::c_void>(),
+            new_layout.align(),
+            new_layout.size(),
+            old_layout.size(),
+            0,
+        )
+        .cast::<u8>();
+        if new_ptr.is_null() {
+            Err(AllocError)
+        } else {
+            Ok(NonNull::new_unchecked(core::slice::from_raw_parts_mut(
+                new_ptr,
+                new_layout.size(),
+            )))
+        }
+    }
+
+    unsafe fn deallocate(&self, ptr: NonNull<u8>, _layout: Layout) {
+        ffi::rpfree(ptr.as_ptr().cast::<ffi::c_void>());
     }
 }
 

@@ -128,11 +128,13 @@
 // END - Embark standard lints v0.3
 // crate-specific exceptions:
 #![allow(unsafe_code)] // FFI bindings need it
+#![no_std]
 
+use core::{
+    alloc::{GlobalAlloc, Layout},
+    mem::MaybeUninit,
+};
 use rpmalloc_sys as ffi;
-
-use std::alloc::{GlobalAlloc, Layout};
-use std::mem::MaybeUninit;
 
 /// rpmalloc global allocator wrapper
 pub struct RpMalloc;

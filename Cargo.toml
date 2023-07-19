@@ -2,7 +2,11 @@
 name = "rpmalloc"
 version = "0.2.2"
 description = "Cross-platform global memory allocator using rpmalloc"
-authors = ["Embark <opensource@embark-studios.com>", "Johan Andersson <repi@repi.se>"]
+authors = [
+  "Embark <opensource@embark-studios.com>",
+  "Johan Andersson <repi@repi.se>",
+  "Eric Shimizu Karbstein <gr41.j4ck@gmail.com>"
+]
 license = "MIT OR Apache-2.0"
 repository = "https://github.com/EmbarkStudios/rpmalloc-rs"
 edition = "2018"
